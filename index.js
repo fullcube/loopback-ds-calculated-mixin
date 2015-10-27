@@ -29,6 +29,10 @@ function calculated(Model, options) {
 
   // The loaded observer is triggered when an item is loaded
   Model.observe('before save', function(ctx, next) {
+    // Allow user to bypass calculation by setting `skipCalculated` option.
+    if (ctx.options && ctx.options.skipCalculated) {
+      return next();
+    }
     // We only act on new instances
     if (ctx.instance !== undefined && ctx.isNewInstance !== undefined && ctx.isNewInstance === true) {
       Promise.map(Object.keys(options.properties), function(property) {

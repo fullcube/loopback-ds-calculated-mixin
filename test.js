@@ -135,12 +135,28 @@ describe('loopback datasource property', function() {
       status: 'archived',
       created: '2015-01-01',
       readonly: false,
-      promise: 'This will be overwritten'
+      promised: 'This will be overwritten'
     };
     Item.upsert(newItem).then(function(item) {
       expect(item.created.toString()).to.equal(now.toString());
       expect(item.readonly).to.equal(true);
       expect(item.promised).to.equal('As promised I get back to you!');
+      done();
+    }).catch(done);
+  });
+
+  it('A new item should not override passed in properties if the skipCalculated option is set', function(done) {
+    var newItem = {
+      name: 'My new item',
+      status: 'archived',
+      created: '2015-01-01',
+      readonly: false,
+      promised: 'This will be not be overwritten'
+    };
+    Item.upsert(newItem, {skipCalculated: true}).then(function(item) {
+      expect(item.created.toString()).to.equal(new Date('2015-01-01').toString());
+      expect(item.readonly).to.equal(false);
+      expect(item.promised).to.equal('This will be not be overwritten');
       done();
     }).catch(done);
   });
