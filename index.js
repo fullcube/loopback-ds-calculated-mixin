@@ -2,7 +2,6 @@
 
 var debug = require('debug')('loopback-ds-calculated-mixin');
 var _ = require('lodash');
-var Promise = global.Promise;
 
 function calculated(Model, options) {
 

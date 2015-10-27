@@ -20,20 +20,20 @@
   },
   "main": "index.js",
   "dependencies": {
-    "debug": "2.2.0",
-    "lodash": "3.10.0"
+    "debug": "^2.2.0",
+    "lodash": "^3.10.0"
   },
   "devDependencies": {
-    "bluebird": "2.9.34",
-    "chai": "3.2.0",
-    "jscs": "1.13.1",
-    "jshint": "2.8.0",
-    "loopback": "2.19.0",
-    "loopback-datasource-juggler": "2.36.0",
-    "loopback-testing": "1.2.0",
-    "mocha": "2.2.5",
-    "mocha-sinon": "1.1.4",
-    "sinon": "1.15.4",
-    "sinon-chai": "2.8.0"
+    "bluebird": "latest",
+    "chai": "latest",
+    "jscs": "latest",
+    "jshint": "latest",
+    "loopback": "^2.19.0",
+    "loopback-datasource-juggler": "^2.36.0",
+    "loopback-testing": "^1.2.0",
+    "mocha": "latest",
+    "mocha-sinon": "latest",
+    "sinon": "latest",
+    "sinon-chai": "latest"
   }
 }
