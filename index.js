@@ -1,8 +1,9 @@
+'use strict';
+
 var debug = require('debug')('loopback-ds-calculated-mixin');
 var _ = require('lodash');
 
 function calculated(Model, options) {
-  'use strict';
 
   // Trigger a warning and remove the property from the watchlist when one of
   // the property is not found on the model or the defined callback is not found
@@ -41,10 +42,10 @@ function calculated(Model, options) {
         debug('Calculating property %s with callback %s', property, callback);
 
         var value = Model[callback](ctx.instance);
-        if (value.then === undefined) {
+        if (!_.get(value, 'then')) {
           ctx.instance[property] = value;
         } else {
-          return Model[callback](ctx.instance)
+          return value
             .then(function(res) {
               ctx.instance[property] = res;
             })
