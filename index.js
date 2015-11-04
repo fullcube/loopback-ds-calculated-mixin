@@ -46,11 +46,20 @@ function calculated(Model, options) {
         debug('Calculating property %s with callback %s', property, callback);
 
         var value = Model[callback](ctx.instance);
-        if (!_.get(value, 'then')) {
+        if (value === undefined) {
+          debug('Callback returned undefined. Not setting property');
+          return false;
+        } else if (!_.get(value, 'then')) {
+          debug('Setting property %s to %s', property, value);
           ctx.instance[property] = value;
         } else {
           return value
             .then(function(res) {
+              if (res === undefined) {
+                debug('Callback returned undefined. Not setting property');
+                return false;
+              }
+              debug('Setting property %s to %s', property, res);
               ctx.instance[property] = res;
             })
             .catch(next);
