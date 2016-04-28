@@ -17,26 +17,26 @@ INSTALL
 npm install --save loopback-ds-calculated-mixin
 ```
 
-SERVER.JS
+SERVER CONFIG
 =============
+Add the mixins property to your server/model-config.json:
 
-In your `server/server.js` file add the following line before the `boot(app, __dirname);` line.
-
-```javascript
-...
-var app = module.exports = loopback();
-...
-// Add Calculated Mixin to loopback
-require('loopback-ds-calculated-mixin')(app);
-
-boot(app, __dirname, function(err) {
-  'use strict';
-  if (err) throw err;
-
-  // start the server if `$ node server.js`
-  if (require.main === module)
-    app.start();
-});
+```
+{
+  "_meta": {
+    "sources": [
+      "loopback/common/models",
+      "loopback/server/models",
+      "../common/models",
+      "./models"
+    ],
+    "mixins": [
+      "loopback/common/mixins",
+      "../node_modules/loopback-ds-calculated-mixin/lib",
+      "../common/mixins"
+    ]
+  }
+}
 ```
 
 CONFIG
@@ -89,5 +89,3 @@ Run with debugging output on:
 ```bash
   DEBUG='loopback-ds-calculated-mixin' npm test
 ```
-
-# MIT License
