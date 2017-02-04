@@ -4,11 +4,11 @@ var debug = require('debug')('loopback-ds-calculated-mixin');
 var utils = require('loopback-datasource-juggler/lib/utils');
 
 var loopback = require('loopback');
-var lt = require('loopback-testing');
 
 var chai = require('chai');
 var expect = chai.expect;
 var sinon = require('sinon');
+chai.use(require('chai-datetime'));
 chai.use(require('sinon-chai'));
 require('mocha-sinon');
 
@@ -24,141 +24,274 @@ require('./')(app);
 // Connect to db
 var dbConnector = loopback.memory();
 
-// Main test
-describe('loopback datasource property', function() {
+var Item = loopback.PersistedModel.extend('item', {
+  name: String,
+  status: String,
+  readonly: Boolean,
+  readonlyRecalculated: Boolean,
+  promised: String,
+}, {
+  mixins: {
+    Calculated: {
+      properties: {
+        created: 'calculateCreated',
+        readonly: {
+          callback: 'calculateReadonly',
+          recalculateOnUpdate: true,
+        },
+        promised: 'calculatePromised',
+      },
+    }
+  }
+});
 
-  var Item;
-  var now = new Date();
+Item.calculateReadonly = function calculateReadonly(item) {
+  return item.status === 'archived';
+};
 
-  lt.beforeEach.withApp(app);
+Item.calculateCreated = function calculateCreated(item) {
+  return new Date();
+};
 
-  beforeEach(function(done) {
+Item.calculatePromised = function calculatePromised(item, cb) {
+  cb = cb || utils.createPromiseCallback();
+  process.nextTick(function() {
+    cb(null, 'As promised I get back to you!');
+  });
+  return cb.promise;
+};
 
-    Item = this.Item = loopback.PersistedModel.extend('item', {
-      name: String,
-      status: String,
-      readonly: Boolean,
-      promised: String,
-      created: Date
-    }, {
-      mixins: {
-        Calculated: {
-          "properties": {
-            "readonly": "calculateReadonly",
-            "created": "calculateCreated",
-            "promised": "calculatePromised"
-          }
-        }
-      }
+// Attach model to db
+Item.attachTo(dbConnector);
+app.model(Item);
+app.use(loopback.rest());
+app.set('legacyExplorer', false);
+
+beforeEach(function() {
+  this.sinon.spy(Item, 'calculateReadonly')
+  this.sinon.spy(Item, 'calculateCreated')
+  this.sinon.spy(Item, 'calculatePromised')
+  this.clock = this.sinon.useFakeTimers();
+});
+
+describe('Creating new items', function() {
+  describe('findOrCreate', function() {
+    beforeEach(function() {
+      return Item.findOrCreate({
+        name: 'Item 3',
+        status: 'new',
+      })
+        .then(item => (this.res = item[0]))
     });
-
-    Item.calculateReadonly = function calculateReadonly(item) {
-      return item.status === 'archived';
-    };
-
-    Item.calculateCreated = function calculateCreated(item) {
-      return now;
-    };
-
-    Item.calculatePromised = function calculatePromised(item, cb) {
-      cb = cb || utils.createPromiseCallback();
-      process.nextTick(function() {
-        cb(null, 'As promised I get back to you!');
+    describe('basic', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculateCreated).to.have.been.calledOnce
       });
-      return cb.promise;
-    };
+      it('should set property to the callbacks return value', function() {
+        expect(new Date(this.res.created)).to.equalDate(new Date('1970-01-01'))
+      });
+    });
+    describe('promise', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculatePromised).to.have.been.calledOnce
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(this.res.promised).to.equal('As promised I get back to you!');
+      });
+    })
+    describe('recalculateOnUpdate', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculateReadonly).to.have.been.calledOnce
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(this.res.readonly).to.equal(false);
+      });
+    });
+  });
 
-    // Attach model to db
-    Item.attachTo(dbConnector);
-    app.model(Item);
-    app.use(loopback.rest());
-    app.set('legacyExplorer', false);
-    new lt.TestDataBuilder()
-      .define('item1', Item, {
-        name: 'Item 1',
-        status: 'new'
+  describe('upsert', function() {
+    beforeEach(function() {
+      return Item.upsert({
+        name: 'Item 3',
+        status: 'new',
       })
-      .define('item2', Item, {
-        name: 'Item 23',
-        status: 'archived'
+        .then(item => (this.res = item))
+    });
+    describe('basic', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculateCreated).to.have.been.calledOnce
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(new Date(this.res.created)).to.equalDate(new Date('1970-01-01'))
+      });
+    });
+    describe('promise', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculatePromised).to.have.been.calledOnce
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(this.res.promised).to.equal('As promised I get back to you!');
+      });
+    })
+    describe('recalculateOnUpdate', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculateReadonly).to.have.been.calledOnce
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(this.res.readonly).to.equal(false);
+      });
+    });
+  });
+
+  describe('save', function() {
+    beforeEach(function() {
+      var item = new Item({
+        name: 'Item',
+        status: 'new',
       })
-      .buildTo(this, done);
+      return item.save()
+        .then(item => (this.res = item));
+    });
+    describe('basic', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculateCreated).to.have.been.calledOnce
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(new Date(this.res.created)).to.equalDate(new Date('1970-01-01'))
+      });
+    });
+    describe('promise', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculatePromised).to.have.been.calledOnce
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(this.res.promised).to.equal('As promised I get back to you!');
+      });
+    })
+    describe('recalculateOnUpdate', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculateReadonly).to.have.been.calledOnce
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(this.res.readonly).to.equal(false);
+      });
+    });
+  });
+});
+
+describe('Updating existing items', function() {
+  describe('save', function() {
+    beforeEach(function() {
+      var item = new Item({
+        name: 'Item',
+        status: 'new',
+      })
+      return item.save()
+        .then(item => {
+          item.status = 'archived'
+          return item.save()
+        })
+        .then(item => (this.res = item));
+    });
+    describe('basic', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculateCreated).to.have.been.calledOnce
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(new Date(this.res.created)).to.equalDate(new Date('1970-01-01'))
+      });
+    });
+    describe('promise', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculatePromised).to.have.been.calledOnce
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(this.res.promised).to.equal('As promised I get back to you!');
+      });
+    })
+    describe('recalculateOnUpdate', function() {
+      it('should call the defined callback twice', function() {
+        expect(Item.calculateReadonly).to.have.been.calledTwice
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(this.res.readonly).to.equal(true);
+      });
+    });
   });
 
-
-  it('The first item is not readonly', function(done) {
-    Item.findById(this.item1.id).then(function(item) {
-      expect(item.created.toString()).to.equal(now.toString());
-      expect(item.readonly).to.equal(false);
-      expect(item.promised).to.equal('As promised I get back to you!');
-      done();
-    }).catch(done);
+  describe('upsert', function() {
+    beforeEach(function() {
+      var item = new Item({
+        name: 'Item',
+        status: 'new',
+      })
+      return item.save()
+        .then(item => {
+          item.status = 'archived'
+          return Item.upsert(item)
+        })
+        .then(item => (this.res = item));
+    });
+    describe('basic', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculateCreated).to.have.been.calledOnce
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(new Date(this.res.created)).to.equalDate(new Date('1970-01-01'))
+      });
+    });
+    describe('promise', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculatePromised).to.have.been.calledOnce
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(this.res.promised).to.equal('As promised I get back to you!');
+      });
+    })
+    describe('recalculateOnUpdate', function() {
+      it('should call the defined callback twice', function() {
+        expect(Item.calculateReadonly).to.have.been.calledTwice
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(this.res.readonly).to.equal(true);
+      });
+    });
   });
 
-  it('The second item is readonly', function(done) {
-    Item.findById(this.item2.id).then(function(item) {
-      expect(item.created.toString()).to.equal(now.toString());
-      expect(item.readonly).to.equal(true);
-      expect(item.promised).to.equal('As promised I get back to you!');
-      done();
-    }).catch(done);
-  });
-
-  it('The first item readonly should not change', function(done) {
-    var update = this.item1;
-    update.status = 'archived';
-    Item.upsert(update).then(function(item) {
-      // TODO: Check why this test is failing with a 2-hour offset
-      //expect(item.created.toString()).to.equal(now.toString());
-      expect(item.readonly).to.equal(false);
-      expect(item.promised).to.equal('As promised I get back to you!');
-      done();
-    }).catch(done);
-  });
-
-  it('A new item should set readonly correctly', function(done) {
-    var newItem = {
-      name: 'My new item',
-      status: 'archived'
-    };
-    Item.upsert(newItem).then(function(item) {
-      expect(item.created.toString()).to.equal(now.toString());
-      expect(item.readonly).to.equal(true);
-      expect(item.promised).to.equal('As promised I get back to you!');
-      done();
-    }).catch(done);
-  });
-
-  it('A new item should override passed in properties ', function(done) {
-    var newItem = {
-      name: 'My new item',
-      status: 'archived',
-      created: '2015-01-01',
-      readonly: false,
-      promised: 'This will be overwritten'
-    };
-    Item.upsert(newItem).then(function(item) {
-      expect(item.created.toString()).to.equal(now.toString());
-      expect(item.readonly).to.equal(true);
-      expect(item.promised).to.equal('As promised I get back to you!');
-      done();
-    }).catch(done);
-  });
-
-  it('A new item should not override passed in properties if the skipCalculated option is set', function(done) {
-    var newItem = {
-      name: 'My new item',
-      status: 'archived',
-      created: '2015-01-01',
-      readonly: false,
-      promised: 'This will be not be overwritten'
-    };
-    Item.upsert(newItem, {skipCalculated: true}).then(function(item) {
-      expect(item.created.toString()).to.equal(new Date('2015-01-01').toString());
-      expect(item.readonly).to.equal(false);
-      expect(item.promised).to.equal('This will be not be overwritten');
-      done();
-    }).catch(done);
+  describe('updateAttributes', function() {
+    beforeEach(function() {
+      var item = new Item({
+        name: 'Item',
+        status: 'new',
+      })
+      return item.save()
+        .then(item => item.updateAttribute('status', 'archived'))
+        .then(item => (this.res = item));
+    });
+    describe('basic', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculateCreated).to.have.been.calledOnce
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(new Date(this.res.created)).to.equalDate(new Date('1970-01-01'))
+      });
+    });
+    describe('promise', function() {
+      it('should call the defined callback once', function() {
+        expect(Item.calculatePromised).to.have.been.calledOnce
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(this.res.promised).to.equal('As promised I get back to you!');
+      });
+    })
+    describe('recalculateOnUpdate', function() {
+      it('should call the defined callback twice', function() {
+        expect(Item.calculateReadonly).to.have.been.calledTwice
+      });
+      it('should set property to the callbacks return value', function() {
+        expect(this.res.readonly).to.equal(true);
+      });
+    });
   });
 
 });
