@@ -13,8 +13,8 @@
     "url": "https://github.com/fullcube/loopback-ds-calculated-mixin.git"
   },
   "scripts": {
-    "lint": "jscs lib && jshint lib",
-    "test": "mocha -R spec --timeout 10000 test.js",
+    "lint": "eslint .",
+    "test": "NODE_ENV=test nyc --reporter=lcov --reporter=text --reporter=text-summary mocha test/*test.js",
     "test:watch": "npm run test -- -w",
     "pretest": "npm run lint",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
@@ -30,12 +30,14 @@
     "chai": "latest",
     "chai-datetime": "^1.4.1",
     "condition-circle": "^1.5.0",
-    "jscs": "latest",
-    "jshint": "latest",
+    "dirty-chai": "^1.2.2",
+    "eslint": "^2.11.1",
+    "eslint-config-fullcube": "^1.0.46",
     "loopback": "^3.6.0",
     "loopback-datasource-juggler": "^3.5.0",
     "mocha": "latest",
     "mocha-sinon": "latest",
+    "nyc": "^10.2.0",
     "semantic-release": "^6.3.2",
     "sinon": "latest",
     "sinon-chai": "latest"
