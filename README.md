@@ -125,5 +125,5 @@ DEBUGGING
 Run with debugging output on:
 
 ```bash
-  DEBUG='loopback-ds-calculated-mixin' npm test
+  DEBUG='loopback:mixin:calculated' npm test
 ```
