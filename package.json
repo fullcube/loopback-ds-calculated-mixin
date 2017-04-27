@@ -27,10 +27,12 @@
     "lodash": "^4.17.4"
   },
   "devDependencies": {
+    "@bubltechnology/customizable-commit-analyzer": "^1.0.2-0",
     "bluebird": "latest",
     "chai": "latest",
     "chai-datetime": "^1.4.1",
     "condition-circle": "^1.5.0",
+    "conventional-commit-types": "^2.1.0",
     "coveralls": "^2.13.0",
     "dirty-chai": "^1.2.2",
     "eslint": "^2.11.1",
@@ -44,7 +46,26 @@
     "sinon": "latest",
     "sinon-chai": "latest"
   },
+  "config": {
+    "commitTypeMap": {
+      "feat": "minor",
+      "fix": "patch",
+      "docs": "patch",
+      "style": "patch",
+      "refactor": "patch",
+      "perf": "patch",
+      "test": "patch",
+      "build": "patch",
+      "ci": "patch",
+      "chore": "patch",
+      "revert": "patch"
+    },
+    "validate-commit-msg": {
+      "types": "conventional-commit-types"
+    }
+  },
   "release": {
-    "verifyConditions": "condition-circle"
+    "verifyConditions": "condition-circle",
+    "analyzeCommits": "@bubltechnology/customizable-commit-analyzer"
   }
 }
