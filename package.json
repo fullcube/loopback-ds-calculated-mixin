@@ -37,7 +37,6 @@
     "dirty-chai": "^1.2.2",
     "eslint-config-fullcube": "^2.0.0",
     "loopback": "^3.6.0",
-    "loopback-datasource-juggler": "^3.5.0",
     "mocha": "latest",
     "mocha-sinon": "latest",
     "nyc": "^10.2.0",
