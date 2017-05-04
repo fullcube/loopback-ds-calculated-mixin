@@ -35,7 +35,7 @@
     "conventional-commit-types": "^2.1.0",
     "coveralls": "^2.13.0",
     "dirty-chai": "^1.2.2",
-    "eslint-config-fullcube": "^2.0.0",
+    "eslint-config-fullcube": "^2.0.2",
     "loopback": "^3.6.0",
     "mocha": "latest",
     "mocha-sinon": "latest",

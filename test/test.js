@@ -1,8 +1,8 @@
 const utils = require('loopback-datasource-juggler/lib/utils')
 const loopback = require('loopback')
-
 const chai = require('chai')
-const expect = chai.expect
+
+const { expect } = chai
 
 chai.use(require('chai-datetime'))
 chai.use(require('dirty-chai'))
