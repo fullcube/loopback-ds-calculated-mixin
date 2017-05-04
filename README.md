@@ -1,6 +1,8 @@
 CALCULATED MIXIN
 ================
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/fullcube/loopback-ds-calculated-mixin.svg)](https://greenkeeper.io/)
+
 [![CircleCI](https://circleci.com/gh/fullcube/loopback-ds-calculated-mixin.svg?style=svg)](https://circleci.com/gh/fullcube/loopback-ds-calculated-mixin) [![Coverage Status](https://coveralls.io/repos/github/fullcube/loopback-ds-calculated-mixin/badge.svg?branch=master)](https://coveralls.io/github/fullcube/loopback-ds-calculated-mixin?branch=master)  [![Dependencies](http://img.shields.io/david/fullcube/loopback-ds-calculated-mixin.svg?style=flat)](https://david-dm.org/fullcube/loopback-ds-calculated-mixin) [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 This is a mixin for the LoopBack framework that adds calculated properties to a model.
