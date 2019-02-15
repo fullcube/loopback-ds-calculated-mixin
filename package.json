@@ -39,7 +39,7 @@
     "loopback": "^3.6.0",
     "mocha": "latest",
     "mocha-sinon": "latest",
-    "nyc": "^11.0.0",
+    "nyc": "^13.3.0",
     "semantic-release": "^6.3.2",
     "sinon": "latest",
     "sinon-chai": "latest"
